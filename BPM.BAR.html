@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Producer Tools Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: 'Orbitron', sans-serif;
+      margin: 0;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #58a6ff;
+      margin-bottom: 30px;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+    button {
+      background: #238636;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 15px 30px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s;
+    }
+    button:hover {
+      background: #2ea043;
+      transform: scale(1.10);
+    }
+    .form-section {
+      display: none;
+      animation: slideIn 0.07s ease-in-out;
+      max-width: 500px;
+      margin: 0 auto 20px;
+    }
+    .form-section.active {
+      display: block;
+    }
+    label, input {
+      display: block;
+      margin: 12px 0;
+      width: 100%;
+    }
+    input {
+      padding: 10px;
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      border-radius: 6px;
+    }
+    #output {
+      margin-top: 30px;
+      white-space: pre-wrap;
+      font-size: 16px;
+      background-color: #161b22;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #30363d;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎧 PP's</h1>
+  <div class="button-group">
+    <button onclick="showCalculator('timeToBars')">🕒 Time to Bars</button>
+    <button onclick="showCalculator('barsToTime')">Bars to Time</button>
+  </div>
+
+  <div id="timeToBars" class="form-section">
+    <h2>Time to Bars</h2>
+    <label>Minutes: <input type="number" id="minutes" value="3"></label>
+    <label>Seconds: <input type="number" id="seconds" value="30"></label>
+    <label>BPM: <input type="number" id="bpm1" value="120"></label>
+    <label>Beats per Bar: <input type="number" id="beatsPerBar1" value="4"></label>
+    <button onclick="calculateBars()">GoGoGo!!!</button>
+  </div>
+
+  <div id="barsToTime" class="form-section">
+    <h2>Bars to Time</h2>
+    <label>Bars: <input type="number" id="bars" value="100"></label>
+    <label>BPM: <input type="number" id="bpm2" value="120"></label>
+    <label>Beats per Bar: <input type="number" id="beatsPerBar2" value="4"></label>
+    <button onclick="calculateTime()">GoGoGo!!!</button>
+  </div>
+
+  <div id="output"></div>
+
+  <script>
+    function showCalculator(id) {
+      document.querySelectorAll('.form-section').forEach(section => section.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.getElementById('output').innerText = "";
+    }
+
+    function calculateFX(bpm) {
+      const beatDuration = 60000 / bpm;
+      const delayTimes = {
+        "1/1": beatDuration,
+        "1/2": beatDuration / 2,
+        "1/4": beatDuration / 4,
+        "1/8": beatDuration / 8,
+        "1/16": beatDuration / 16,
+        "1/4 dotted": beatDuration * 1.5 / 4,
+        "1/8 dotted": beatDuration * 1.5 / 8,
+        "1/4 triplet": beatDuration / 3,
+        "1/8 triplet": beatDuration / 6
+      };
+      const reverbPredelay = beatDuration / 16;
+      const reverbDecay = beatDuration * 3;
+
+      let fxOutput = `🎛 FX Timing for BPM ${bpm}:
+`;
+      for (let key in delayTimes) {
+        fxOutput += `  ${key}: ${delayTimes[key].toFixed(1)} ms
+`;
+      }
+      fxOutput += `
+🌫 Reverb:
+  Pre-delay: ${reverbPredelay.toFixed(1)} ms
+  Decay: ${reverbDecay.toFixed(1)} ms`;
+      return fxOutput;
+    }
+
+    function calculateBars() {
+      const minutes = parseFloat(document.getElementById('minutes').value) || 0;
+      const seconds = parseFloat(document.getElementById('seconds').value) || 0;
+      const bpm = parseFloat(document.getElementById('bpm1').value);
+      const beatsPerBar = parseFloat(document.getElementById('beatsPerBar1').value);
+
+      const totalSeconds = (minutes * 60) + seconds;
+      const totalBeats = (bpm / 60) * totalSeconds;
+      const totalBars = totalBeats / beatsPerBar;
+
+      let result = `🧮 Total Beats: ${totalBeats.toFixed(2)}
+📏 Total Bars: ${totalBars.toFixed(2)}
+
+`;
+      result += calculateFX(bpm);
+
+      document.getElementById('output').innerText = result;
+    }
+
+    function calculateTime() {
+      const bars = parseFloat(document.getElementById('bars').value);
+      const bpm = parseFloat(document.getElementById('bpm2').value);
+      const beatsPerBar = parseFloat(document.getElementById('beatsPerBar2').value);
+
+      const totalBeats = bars * beatsPerBar;
+      const totalSeconds = (totalBeats / bpm) * 60;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = Math.round(totalSeconds % 60);
+
+      let result = `⏱ Total Time: ${minutes} minute(s) and ${seconds} second(s)
+
+`;
+      result += calculateFX(bpm);
+
+      document.getElementById('output').innerText = result;
+    }
+  </script>
+</body>
+</html>
